@@ -1,0 +1,23 @@
+# Gradle
+.gradle/
+**/build/
+
+# Local / secrets
+local.properties
+/local.properties
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+
+# Android release & package outputs
+*.apk
+*.aab
+*.ap_
+app/release/
+
+# Misc
+.DS_Store
+/captures
+.externalNativeBuild
+.cxx
