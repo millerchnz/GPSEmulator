@@ -1,17 +1,19 @@
 package com.millerchnz.gpsemulator.ui
 
 import android.content.ClipData
+import android.content.Intent
 import android.os.SystemClock
+import android.provider.Settings
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -60,6 +62,7 @@ import java.util.Locale
 
 @Composable
 fun MapScreen(
+    mockReady: Boolean,
     viewModel: MapViewModel = viewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -100,7 +103,6 @@ fun MapScreen(
         Card(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .navigationBarsPadding()
                 .padding(16.dp)
                 .fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
@@ -110,6 +112,10 @@ fun MapScreen(
             elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         ) {
             Column(Modifier.padding(16.dp)) {
+                if (!mockReady) {
+                    MockSetupNotice()
+                    Spacer(Modifier.height(12.dp))
+                }
                 Text(
                     text = if (state.isMocking) "Feeding this location to the phone" else "Drop a pin, then apply it",
                     style = MaterialTheme.typography.titleMedium,
@@ -163,6 +169,7 @@ fun MapScreen(
                 )
                 Button(
                     onClick = { viewModel.toggleMock() },
+                    enabled = mockReady || state.isMocking,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     if (state.isMocking) {
@@ -181,6 +188,48 @@ fun MapScreen(
                 .align(Alignment.TopCenter)
                 .padding(top = 48.dp),
         )
+    }
+}
+
+/**
+ * Mocking needs developer options and the mock-location app selection, which logging and
+ * geofencing do not, so the requirement is raised here rather than blocking the whole app.
+ */
+@Composable
+private fun MockSetupNotice() {
+    val context = LocalContext.current
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer,
+            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+        ),
+    ) {
+        Column(Modifier.padding(12.dp)) {
+            Text(
+                text = "Not selected as the mock location app",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = "Unlock Developer options, then set “Select mock location app” to GPS Debug Tool. " +
+                    "Logging and geofencing work without this.",
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Spacer(Modifier.height(8.dp))
+            FilledTonalButton(
+                onClick = {
+                    runCatching {
+                        context.startActivity(Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS))
+                    }.onFailure {
+                        context.startActivity(Intent(Settings.ACTION_DEVICE_INFO_SETTINGS))
+                    }
+                },
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
+            ) {
+                Text("Open developer options")
+            }
+        }
     }
 }
 

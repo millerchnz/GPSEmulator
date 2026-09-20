@@ -44,7 +44,7 @@ private val LightColorScheme = lightColorScheme(
 )
 
 @Composable
-fun GpsEmulatorTheme(
+fun GpsDebugToolTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 ) {

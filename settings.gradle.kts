@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "GPSEmulator"
+rootProject.name = "GPS Debug Tool"
 include(":app")

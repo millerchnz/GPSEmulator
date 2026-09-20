@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <full-backup-content>
     <exclude domain="sharedpref" path="gps_emulator.xml" />
+    <exclude domain="sharedpref" path="gps_explorer_settings.xml" />
+    <exclude domain="database" path="gps_explorer.db" />
+    <exclude domain="database" path="gps_explorer.db-wal" />
+    <exclude domain="database" path="gps_explorer.db-shm" />
 </full-backup-content>

@@ -1,6 +1,7 @@
 package com.millerchnz.gpsemulator.setup
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.AppOpsManager
 import android.content.Context
 import android.content.pm.PackageManager
@@ -14,16 +15,21 @@ import com.millerchnz.gpsemulator.BuildConfig
 data class SetupSnapshot(
     val hasFineLocation: Boolean,
     val hasNotifications: Boolean,
+    val hasBackgroundLocation: Boolean,
     val locationEnabled: Boolean,
     val developerOptionsEnabled: Boolean,
     val isMockLocationApp: Boolean,
 ) {
-    val allReady: Boolean
-        get() = hasFineLocation &&
-            hasNotifications &&
-            locationEnabled &&
-            developerOptionsEnabled &&
-            isMockLocationApp
+    /**
+     * Everything needed to read the device's own GPS, which is all that logging and
+     * geofencing require. The app opens once these pass.
+     */
+    val coreReady: Boolean
+        get() = hasFineLocation && hasNotifications && locationEnabled
+
+    /** Additionally required before the app may feed a fake position to other apps. */
+    val mockReady: Boolean
+        get() = developerOptionsEnabled && isMockLocationApp
 }
 
 object SetupRequirements {
@@ -32,10 +38,15 @@ object SetupRequirements {
         Manifest.permission.ACCESS_COARSE_LOCATION,
     )
 
+    /** Only meaningful from API 29; the constant itself inlines safely on older releases. */
+    @SuppressLint("InlinedApi")
+    const val BACKGROUND_LOCATION_PERMISSION = Manifest.permission.ACCESS_BACKGROUND_LOCATION
+
     fun snapshot(context: Context): SetupSnapshot {
         return SetupSnapshot(
             hasFineLocation = hasFineLocation(context),
             hasNotifications = hasNotifications(context),
+            hasBackgroundLocation = hasBackgroundLocation(context),
             locationEnabled = isLocationEnabled(context),
             developerOptionsEnabled = isDeveloperOptionsEnabled(context),
             isMockLocationApp = isSelectedAsMockLocationApp(context),
@@ -54,6 +65,18 @@ object SetupRequirements {
         return ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.POST_NOTIFICATIONS,
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    /**
+     * Only a separate permission from API 29 onwards. Without it the logging service still
+     * runs in its foreground state, but Play Services will not deliver geofence transitions.
+     */
+    fun hasBackgroundLocation(context: Context): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return true
+        return ContextCompat.checkSelfPermission(
+            context,
+            BACKGROUND_LOCATION_PERMISSION,
         ) == PackageManager.PERMISSION_GRANTED
     }
 

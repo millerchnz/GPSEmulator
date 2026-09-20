@@ -8,27 +8,19 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.BugReport
-import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.PinDrop
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -40,9 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -68,6 +58,11 @@ fun rememberSetupSnapshot(): SetupSnapshot {
     return snapshot
 }
 
+/**
+ * Gates the app on the permissions every feature needs. The extra developer-options work that
+ * only mocking requires is asked for on the mock screen instead, so logging and geofencing are
+ * reachable without it.
+ */
 @Composable
 fun SetupScreen(
     snapshot: SetupSnapshot,
@@ -103,7 +98,7 @@ fun SetupScreen(
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                text = "GPS Emulator can only feed a fake location to other apps after these checks pass. Nothing on the map runs until they do.",
+                text = "GPS Debug Tool needs these three before it can mock a position, log locations or watch geofences.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -112,18 +107,16 @@ fun SetupScreen(
             RequirementCard(
                 icon = Icons.Outlined.MyLocation,
                 title = "Precise location",
-                body = "Needed so the mock feed can replace the real GPS provider.",
+                body = "Needed to read the device's own GPS and to replace it with a mock feed.",
                 done = snapshot.hasFineLocation,
                 actionLabel = "Grant",
-                onAction = {
-                    locationLauncher.launch(SetupRequirements.locationPermissions)
-                },
+                onAction = { locationLauncher.launch(SetupRequirements.locationPermissions) },
             )
             Spacer(Modifier.height(12.dp))
             RequirementCard(
                 icon = Icons.Outlined.Notifications,
                 title = "Notifications",
-                body = "A persistent notification is required while a mock location is active.",
+                body = "Used for the mock and logging foreground services, and for geofence alerts raised while the app is closed.",
                 done = snapshot.hasNotifications,
                 actionLabel = "Grant",
                 onAction = {
@@ -136,112 +129,24 @@ fun SetupScreen(
             RequirementCard(
                 icon = Icons.Outlined.LocationOn,
                 title = "Device location on",
-                body = "Turn on Location in system settings so apps actually listen for a position.",
+                body = "Turn on Location in system settings so the platform reports positions at all.",
                 done = snapshot.locationEnabled,
                 actionLabel = "Open settings",
-                onAction = {
-                    context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
-                },
-            )
-            Spacer(Modifier.height(12.dp))
-            RequirementCard(
-                icon = Icons.Outlined.BugReport,
-                title = "Developer options",
-                body = "Unlock Developer options (tap Build number seven times), then return here.",
-                done = snapshot.developerOptionsEnabled,
-                actionLabel = "Open settings",
-                onAction = {
-                    context.startActivity(Intent(Settings.ACTION_DEVICE_INFO_SETTINGS))
-                },
-            )
-            Spacer(Modifier.height(12.dp))
-            RequirementCard(
-                icon = Icons.Outlined.PinDrop,
-                title = "Select mock location app",
-                body = "In Developer options, set “Select mock location app” to GPS Emulator.",
-                done = snapshot.isMockLocationApp,
-                actionLabel = "Open developer options",
-                onAction = {
-                    val intent = Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)
-                    if (intent.resolveActivity(context.packageManager) != null) {
-                        context.startActivity(intent)
-                    } else {
-                        context.startActivity(Intent(Settings.ACTION_SETTINGS))
-                    }
-                },
+                onAction = { context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)) },
             )
             Spacer(Modifier.height(24.dp))
-            if (!snapshot.allReady) {
-                OutlinedButton(
-                    onClick = {
-                        context.startActivity(
-                            Intent(
-                                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                Uri.fromParts("package", context.packageName, null),
-                            ),
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text("App permission settings")
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun RequirementCard(
-    icon: ImageVector,
-    title: String,
-    body: String,
-    done: Boolean,
-    actionLabel: String,
-    onAction: () -> Unit,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = if (done) {
-                MaterialTheme.colorScheme.primaryContainer
-            } else {
-                MaterialTheme.colorScheme.surfaceVariant
-            },
-        ),
-    ) {
-        Column(Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = if (done) Icons.Outlined.CheckCircle else icon,
-                    contentDescription = null,
-                    tint = if (done) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    },
-                )
-                Spacer(Modifier.width(12.dp))
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.weight(1f),
-                )
-            }
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = body,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            if (!done) {
-                Spacer(Modifier.height(12.dp))
-                Button(
-                    onClick = onAction,
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                ) {
-                    Text(actionLabel)
-                }
+            OutlinedButton(
+                onClick = {
+                    context.startActivity(
+                        Intent(
+                            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                            Uri.fromParts("package", context.packageName, null),
+                        ),
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("App permission settings")
             }
         }
     }

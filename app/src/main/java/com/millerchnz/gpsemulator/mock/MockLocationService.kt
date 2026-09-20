@@ -137,7 +137,7 @@ class MockLocationService : Service() {
             "Mock location",
             NotificationManager.IMPORTANCE_LOW,
         )
-        channel.description = "Shown while GPS Emulator is feeding a fake location"
+        channel.description = "Shown while GPS Debug Tool is feeding a fake location"
         manager.createNotificationChannel(channel)
     }
 
