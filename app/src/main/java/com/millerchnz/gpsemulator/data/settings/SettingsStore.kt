@@ -79,6 +79,13 @@ class SettingsStore(context: Context) {
      * Stable per-install id attached to every webhook as `device=`. Generated once and
      * kept in prefs so logging and geofence requests from this phone stay grouped.
      */
+    /** First-run feature tour. Help can show it again without clearing this. */
+    fun isFeatureTourCompleted(): Boolean = prefs.getBoolean(KEY_FEATURE_TOUR_COMPLETED, false)
+
+    fun setFeatureTourCompleted() {
+        prefs.edit(commit = true) { putBoolean(KEY_FEATURE_TOUR_COMPLETED, true) }
+    }
+
     fun deviceId(): String = synchronized(this) {
         val existing = prefs.getString(KEY_DEVICE_ID, null)?.trim()
         if (!existing.isNullOrEmpty()) return existing
@@ -122,6 +129,7 @@ class SettingsStore(context: Context) {
         const val KEY_FENCE_NOTIFY_DWELL = "geofence_notify_dwell"
         const val KEY_REGISTERED_FENCE_IDS = "registered_geofence_ids"
         const val KEY_DEVICE_ID = "device_id"
+        const val KEY_FEATURE_TOUR_COMPLETED = "feature_tour_completed"
 
         const val PREFIX_LOG = "logging_hook_"
         const val PREFIX_FENCE = "geofence_hook_"

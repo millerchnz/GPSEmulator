@@ -48,6 +48,8 @@ import com.millerchnz.gpsemulator.ui.common.NoticeCard
 import com.millerchnz.gpsemulator.ui.common.SectionCard
 import com.millerchnz.gpsemulator.ui.common.SwitchRow
 import com.millerchnz.gpsemulator.ui.common.WebhookCard
+import com.millerchnz.gpsemulator.ui.tour.TourAnchors
+import com.millerchnz.gpsemulator.ui.tour.tourAnchor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -86,6 +88,7 @@ fun GeofenceSettingsScreen(
                     subtitle = status.describe(),
                     checked = settings.enabled,
                     onCheckedChange = { enabled -> viewModel.update { it.copy(enabled = enabled) } },
+                    modifier = Modifier.tourAnchor(TourAnchors.FENCE_ENABLED),
                 )
             }
 
@@ -104,6 +107,7 @@ fun GeofenceSettingsScreen(
             SectionCard(
                 title = "Alerts",
                 subtitle = "Shown as a toast while the app is open, and as a notification when it is not.",
+                modifier = Modifier.tourAnchor(TourAnchors.FENCE_ALERTS),
             ) {
                 SwitchRow(
                     title = "Alert on entry",
@@ -162,7 +166,12 @@ fun GeofenceSettingsScreen(
                         Spacer(Modifier.height(8.dp))
                     }
                 }
-                Button(onClick = { onAddFence(null, null) }, modifier = Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = { onAddFence(null, null) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .tourAnchor(TourAnchors.FENCE_ADD),
+                ) {
                     Icon(Icons.Outlined.Add, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
                     Text("Add geofence")
@@ -178,6 +187,7 @@ fun GeofenceSettingsScreen(
                 testResult = testResult,
                 onChange = { webhook -> viewModel.update { it.copy(webhook = webhook) } },
                 onTest = viewModel::sendTestRequest,
+                switchModifier = Modifier.tourAnchor(TourAnchors.FENCE_SEND),
             )
 
             SectionCard(
@@ -185,10 +195,16 @@ fun GeofenceSettingsScreen(
                 subtitle = "${Formats.count(eventCount)} transitions recorded, each with every value the " +
                     "triggering location reported.",
             ) {
-                FilledTonalButton(onClick = onOpenData, modifier = Modifier.fillMaxWidth()) {
+                FilledTonalButton(
+                    onClick = onOpenData,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .tourAnchor(TourAnchors.FENCE_EVENTS),
+                ) {
                     Text("View collected events")
                 }
             }
+
         }
     }
 }

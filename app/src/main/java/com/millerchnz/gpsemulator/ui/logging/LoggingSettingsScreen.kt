@@ -46,6 +46,8 @@ import com.millerchnz.gpsemulator.ui.common.NoticeCard
 import com.millerchnz.gpsemulator.ui.common.SectionCard
 import com.millerchnz.gpsemulator.ui.common.SwitchRow
 import com.millerchnz.gpsemulator.ui.common.WebhookCard
+import com.millerchnz.gpsemulator.ui.tour.TourAnchors
+import com.millerchnz.gpsemulator.ui.tour.tourAnchor
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
@@ -91,6 +93,7 @@ fun LoggingSettingsScreen(
                     subtitle = if (status.running) "Service running" else "Service stopped",
                     checked = settings.enabled,
                     onCheckedChange = { enabled -> viewModel.update { it.copy(enabled = enabled) } },
+                    modifier = Modifier.tourAnchor(TourAnchors.LOG_ENABLED),
                 )
                 if (status.running) {
                     Spacer(Modifier.height(12.dp))
@@ -209,6 +212,7 @@ fun LoggingSettingsScreen(
                 testResult = testResult,
                 onChange = { webhook -> viewModel.update { it.copy(webhook = webhook) } },
                 onTest = viewModel::sendTestRequest,
+                switchModifier = Modifier.tourAnchor(TourAnchors.LOG_SEND),
             )
 
             SectionCard(
@@ -221,10 +225,16 @@ fun LoggingSettingsScreen(
                     FieldList(fields = LocationFields.of(sample))
                     Spacer(Modifier.height(12.dp))
                 }
-                FilledTonalButton(onClick = onOpenData, modifier = Modifier.fillMaxWidth()) {
+                FilledTonalButton(
+                    onClick = onOpenData,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .tourAnchor(TourAnchors.LOG_VIEW),
+                ) {
                     Text("View collected data")
                 }
             }
+
         }
     }
 }

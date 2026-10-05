@@ -39,6 +39,7 @@ fun WebhookCard(
     onChange: (WebhookSettings) -> Unit,
     onTest: () -> Unit,
     modifier: Modifier = Modifier,
+    switchModifier: Modifier = Modifier,
 ) {
     val urlError = if (settings.enabled && settings.baseUrl.isNotBlank()) {
         WebhookUrl.validationError(settings.baseUrl)
@@ -56,6 +57,7 @@ fun WebhookCard(
             title = "Send a GET for every record",
             checked = settings.enabled,
             onCheckedChange = { onChange(settings.copy(enabled = it)) },
+            modifier = switchModifier,
         )
         if (settings.enabled) {
             Spacer(Modifier.height(12.dp))

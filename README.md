@@ -8,6 +8,10 @@ Android developer tool for exploring the platform location APIs. It does three t
 
 This is for local development and testing. Mock locations are flagged by the system (`isMock` / `isFromMockProvider`), so apps that reject mocked GPS will still see it as fake — and the logger records that flag, so you can watch it flip.
 
+## Install
+
+[GPS Debug Tool on Google Play](https://play.google.com/apps/testing/com.millerchnz.gpsemulator) (open testing).
+
 ## Requirements
 
 - Android 8.0+ (API 26)

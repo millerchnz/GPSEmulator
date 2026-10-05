@@ -19,6 +19,13 @@
         android:name="android.hardware.location.gps"
         android:required="false" />
 
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+    </queries>
+
     <application
         android:name=".GpsDebugToolApp"
         android:allowBackup="true"

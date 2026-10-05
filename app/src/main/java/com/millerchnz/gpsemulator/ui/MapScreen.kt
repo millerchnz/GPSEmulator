@@ -56,6 +56,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.millerchnz.gpsemulator.ui.theme.PinRed
+import com.millerchnz.gpsemulator.ui.tour.TourAnchors
+import com.millerchnz.gpsemulator.ui.tour.tourAnchor
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -170,7 +172,9 @@ fun MapScreen(
                 Button(
                     onClick = { viewModel.toggleMock() },
                     enabled = mockReady || state.isMocking,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .tourAnchor(TourAnchors.APPLY_MOCK),
                 ) {
                     if (state.isMocking) {
                         Icon(Icons.Outlined.Stop, contentDescription = null)
@@ -186,7 +190,7 @@ fun MapScreen(
             hostState = snackbar,
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .padding(top = 48.dp),
+                .padding(top = 16.dp),
         )
     }
 }
