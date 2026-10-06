@@ -73,6 +73,36 @@ https://example.com/gpslog?device=<uuid>&recorded_at=2026-09-17T04:31:07Z&lat=-3
 - `http://` and `https://` are both accepted (local collectors are often plain HTTP)
 - A request that fails is queued and retried when connectivity returns, and again on a backoff if the network never dropped; the settings screen shows the pending count
 
+## Access-log map
+
+`log_analyser/gpsemulator_map.py` turns those webhook GETs into a static HTML map. It does not receive the requests itself. nginx writes them to the access log (a 404 is fine), and a cron job re-reads that log, stores new lines in SQLite, and rewrites the HTML.
+
+The webhook base URL has to use the path `/gpslog`, for example `https://example.com/gpslog`. Query parameters are the ones the app already sends (`device`, `lat`, `lon`, and the rest). Each phone is the `device` UUID shown on the webhook card.
+
+Python 3.9 or newer is the only dependency. The script uses the standard library. The generated page loads Leaflet from unpkg when someone opens it.
+
+```bash
+sudo mkdir -p /var/lib/gpsemulator /var/www/gpsemulator
+sudo chown "$USER" /var/lib/gpsemulator /var/www/gpsemulator
+
+python3 log_analyser/gpsemulator_map.py \
+  /var/log/nginx/access.log \
+  --db /var/lib/gpsemulator/samples.sqlite \
+  -o /var/www/gpsemulator/map.html
+```
+
+Pass the live log and the previous rotation (`access.log.1`, or `access.log.1.gz`) so a line is not missed when the log rotates between runs. Re-reading a line is safe: each line is stored once, keyed by a hash.
+
+`--html-only` rebuilds the page from the database without reading logs.
+
+Schedule it as a cron job. Every 15 minutes is enough for a map that follows the phones; the interval only controls how fresh the HTML is.
+
+```cron
+*/15 * * * * python3 /opt/GPSEmulator/log_analyser/gpsemulator_map.py /var/log/nginx/access.log /var/log/nginx/access.log.1 --db /var/lib/gpsemulator/samples.sqlite -o /var/www/gpsemulator/map.html
+```
+
+The cron user needs to read the nginx logs and to write the database and the HTML file. Serve `map.html` as a static file. The page starts blank until a device is chosen. Times are shown in Pacific/Auckland. The file contains the stored tracks, so do not leave it on a public web root unless that is what you want.
+
 ## Build
 
 ```bash

@@ -18,6 +18,11 @@ app/release/
 *.jks
 *.keystore
 
+# Access-log map output (cron writes these; they hold location tracks)
+log_analyser/*.sqlite
+log_analyser/*.html
+log_analyser/__pycache__/
+
 # Misc
 .DS_Store
 /captures
